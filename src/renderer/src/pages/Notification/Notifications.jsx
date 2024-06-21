@@ -11,7 +11,7 @@ const Notifications = () => {
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
-                const patients = await window.api.queryDatabase('SELECT * FROM patients');
+                const patients = await window.api.queryDatabase('SELECT * FROM Finalpatients');
                 setNotifications(patients);
             } catch (error) {
                 console.error('Failed to fetch notifications:', error);

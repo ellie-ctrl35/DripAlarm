@@ -60,19 +60,23 @@ function createTable() {
   });
 }
 
-function createPatientTable(){
-  db.run(`CREATE TABLE IF NOT EXISTS patients (
+function createPatientTable() {
+  db.run(`CREATE TABLE IF NOT EXISTS Finalpatients (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     patientname TEXT,
     age INTEGER,
     wardnumber INTEGER,
     bednumber INTEGER,
     medname TEXT,
-    volumeoffluid INTEGER,  
+    volumeoffluid INTEGER,
     dosesTaken INTEGER,
     flowRate INTEGER,
     fluidNumber INTEGER,
-    customAlarmPercentage INTEGER
+    customAlarmPercentage INTEGER,
+    finishTime TEXT,
+    halfTime TEXT,
+    ninetyPercentTime TEXT,
+    customTime TEXT
   )`, (err) => {
     if (err) {
       console.error('Failed to create patient table:', err);
@@ -84,15 +88,51 @@ function createPatientTable(){
 
 // Function to add a new patient
 function addPatient(patient) {
-  const { patientname, age, wardnumber, bednumber, medname, volumeoffluid, dosesTaken, flowRate, fluidNumber, customAlarmPercentage } = patient;
-  db.run(`INSERT INTO patients (patientname, age, wardnumber, bednumber, medname, volumeoffluid, dosesTaken, flowRate, fluidNumber, customAlarmPercentage) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [patientname, age, wardnumber, bednumber, medname, volumeoffluid, dosesTaken, flowRate, fluidNumber, customAlarmPercentage], function (err) {
+  const {
+    patientname,
+    age,
+    wardnumber,
+    bednumber,
+    medname,
+    volumeoffluid,
+    dosesTaken,
+    flowRate,
+    fluidNumber,
+    customAlarmPercentage,
+    finishTime,
+    halfTime,
+    ninetyPercentTime,
+    customTime
+  } = patient;
+
+  db.run(
+    `INSERT INTO Finalpatients 
+      (patientname, age, wardnumber, bednumber, medname, volumeoffluid, dosesTaken, flowRate, fluidNumber, customAlarmPercentage, finishTime, halfTime, ninetyPercentTime, customTime) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      patientname,
+      age,
+      wardnumber,
+      bednumber,
+      medname,
+      volumeoffluid,
+      dosesTaken,
+      flowRate,
+      fluidNumber,
+      customAlarmPercentage,
+      finishTime,
+      halfTime,
+      ninetyPercentTime,
+      customTime
+    ],
+    function (err) {
       if (err) {
         console.error('Failed to add patient:', err);
       } else {
         console.log('Patient added with ID:', this.lastID);
       }
-    });
+    }
+  );
 }
 
 // Handle database queries from the renderer process
