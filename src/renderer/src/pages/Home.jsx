@@ -16,16 +16,20 @@ const Home = () => {
   const [customAlarmPercentage, setCustomAlarmPercentage] = useState(50); 
   const [dropFactor, setDropFactor] = useState(10);
 
+  const roundToMinute = (date) => {
+    date.setSeconds(0, 0); // Set seconds and milliseconds to 0
+    return date;
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     const timeInSeconds = (volumeOfFluid * dropFactor) / flowRate;
     const currentTime = new Date().getTime();
-    const finishTime = new Date(currentTime + timeInSeconds * 1000);
-
-    const halfTime = new Date(currentTime + (timeInSeconds * 0.5) * 1000);
-    const ninetyPercentTime = new Date(currentTime + (timeInSeconds * 0.9) * 1000);
-    const customTime = new Date(currentTime + (timeInSeconds * (customAlarmPercentage / 100)) * 1000);
+    const finishTime = roundToMinute(new Date(currentTime + timeInSeconds * 1000));
+    const halfTime = roundToMinute(new Date(currentTime + (timeInSeconds * 0.5) * 1000));
+    const ninetyPercentTime = roundToMinute(new Date(currentTime + (timeInSeconds * 0.9) * 1000));
+    const customTime = roundToMinute(new Date(currentTime + (timeInSeconds * (customAlarmPercentage / 100)) * 1000));
 
     console.log(`Finish Time: ${finishTime}`);
     console.log(`50% Time: ${halfTime}`);
@@ -113,7 +117,7 @@ const Home = () => {
         <div className="grid grid-cols-2 gap-4 mb-6">
           <input
             name="medName"
-            placeholder=" Medicine Name"
+            placeholder=" Solution Name"
             value={medName}
             onChange={(e) => setMedName(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:border-indigo-500"
@@ -138,7 +142,7 @@ const Home = () => {
           />
           <input
             name="flowRate"
-            placeholder="FlowRate(mL/sec)"
+            placeholder="FlowRate(drops/sec)"
             type="number"
             value={flowRate}
             onChange={(e) => setFlowRate(e.target.value)}
@@ -154,6 +158,16 @@ const Home = () => {
             className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:border-indigo-500"
           />
           {/* Seekbar/slider for custom alarm percentage */}
+          <input
+            name="DropFactor"
+            placeholder="Drop Factor (drops/mL)"
+            type='number'
+            value={dropFactor}
+            onChange={(e) => setDropFactor(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:border-indigo-500"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4 mt-6">
           <div className="flex items-center space-x-2">
             <label className="text-sm">Custom Alarm Percentage:</label>
             <InputSlider

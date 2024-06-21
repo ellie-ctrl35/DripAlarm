@@ -11,7 +11,7 @@ const NavBar = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <img src={logo} alt="Logo" className="h-4 mr-2" />
-          <span className="text-black font-semibold text-lg">JOSEPH</span>
+          <span className="text-black font-semibold text-lg">JOSEPH IV DRIP</span>
         </div>
         <div className="flex items-center space-x-6">
           <NavLink to="/home" activeClassName="text-indigo-400" className="text-black hover:text-indigo-400">

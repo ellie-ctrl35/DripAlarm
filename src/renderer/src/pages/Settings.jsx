@@ -5,15 +5,18 @@ import {toast, Toaster} from 'react-hot-toast';
 const Settings = () => {
   const [username, setUsername] = useState(''); 
   const [password, setPassword] = useState('');
-  const handleSubmit = () =>{
+  
+  const handleSubmit = (event) => {
+    event.preventDefault(); // Prevent form from refreshing the page
     try {
-      window.api.addUser(username, password);
-      toast.success('User added successfully!');
+      window.api.addUser(username, password)
+        toast.success('User added successfully!');
+      
     } catch (error) {
       toast.error('Failed to add user');
     }
+  };
 
-  }
   return (
     <div className='bg-gray-100 min-h-screen'>
       <NavBar />
@@ -42,7 +45,7 @@ const Settings = () => {
           <div className="mb-4">
             <label className="block text-gray-700">username</label>
             <input 
-              type="email"
+              type="text"
               value={username} 
               className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
               placeholder="Enter user email" 
@@ -73,6 +76,7 @@ const Settings = () => {
           <p className="text-gray-700">The Notification screen shows the list of notifications. When you click a notification, a modal appears with more details about the notification.</p>
         </div>
       </section>
+      <Toaster/>
     </div>
   );
 };

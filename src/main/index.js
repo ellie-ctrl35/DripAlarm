@@ -2,6 +2,9 @@ const { app, shell, BrowserWindow, ipcMain } = require('electron');
 const { join } = require('path');
 const { electronApp, optimizer, is } = require('@electron-toolkit/utils');
 const sqlite3 = require('sqlite3').verbose();
+const notifier = require('node-notifier');
+const schedule = require('node-schedule');
+
 // const icon = require('../../resources/icon.png?asset');
 
 let db;
@@ -150,33 +153,74 @@ function addNewUser(username, password) {
 }
 
 function checkPatientTimes() {
-  const currentTime = new Date().toISOString().slice(0, 16); // Get current time in "YYYY-MM-DDTHH:MM" format
+  const roundToMinute = (date) => {
+    date.setSeconds(0, 0); // Set seconds and milliseconds to 0
+    return date.toISOString();
+  };
+
+  const currentTime = new Date();
+  currentTime.setSeconds(0, 0); // Set seconds and milliseconds to 0
+  const formattedCurrentTime = currentTime.toISOString();
 
   const query = `
     SELECT patientname, medname
-    FROM Finalpatients
-    WHERE finishTime = ? OR halfTime = ? OR ninetyPercentTime = ? OR customTime = ?
+    FROM patients
+    WHERE finishTime >= ? 
+    OR halfTime >= ? 
+    OR ninetyPercentTime >= ? 
+    OR customTime >= ?
   `;
 
-  db.all(query, [currentTime, currentTime, currentTime, currentTime], (err, rows) => {
+  db.all(query, [formattedCurrentTime, formattedCurrentTime, formattedCurrentTime, formattedCurrentTime], (err, rows) => {
     if (err) {
-      console.error('Failed to query patient times:', err);
+      console.error('Failed to check patient times:', err);
       return;
     }
 
-    rows.forEach(row => {
-      notifier.notify({
-        title: 'Medication Alert',
-        message: `Patient: ${row.patientname}, Medication: ${row.medname}`
-      });
+    if (rows.length > 0) {
+      const patientsWithAlarms = rows.map((row) => ({
+        patientname: row.patientname,
+        medname: row.medname,
+      }));
+
+      io.emit('patientTimes', patientsWithAlarms);
+    } else {
+      console.log('No patients found with matching times.');
+    }
+  });
+}
+
+
+// Schedule the checkPatientTimes function to run every minute using node-schedule
+function startNotificationScheduler() {
+  schedule.scheduleJob('* * * * *', checkPatientTimes); // Runs every minute
+}
+
+// Function to authenticate a user
+function authenticateUser(username, password) {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT * FROM theusers WHERE username = ? AND password = ?`;
+    db.get(query, [username, password], (err, row) => {
+      if (err) {
+        reject(err);
+      } else if (row) {
+        resolve(row);
+      } else {
+        reject(new Error('Invalid username or password'));
+      }
     });
   });
 }
 
-// Schedule the checkPatientTimes function to run every minute
-function startNotificationScheduler() {
-  cron.schedule('* * * * *', checkPatientTimes); // Runs every minute
-}
+// Handle login from the renderer process
+ipcMain.handle('login', async (event, username, password) => {
+  try {
+    const user = await authenticateUser(username, password);
+    return { success: true, user };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
 
 // Handle database queries from the renderer process
 ipcMain.handle('query-database', (event, query, params) => {
@@ -216,6 +260,8 @@ app.whenReady().then(() => {
   ipcMain.on('ping', () => console.log('pong'));
 
   createWindow();
+
+  startNotificationScheduler();
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
