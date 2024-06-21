@@ -31,23 +31,7 @@ const Settings = () => {
           <div>********</div>
         </div>
       </section>
-      <section className="settings-section p-6 bg-white mb-4">
-        <h2 className="text-xl font-semibold mb-4">User Preferences</h2>
-        <div className="settings-switch mb-4">
-          <label className="block text-gray-700">Dark mode</label>
-          <input 
-            type="checkbox" 
-            className="form-checkbox h-5 w-5 text-indigo-600"
-          />
-        </div>
-        <div className="settings-switch mb-4">
-          <label className="block text-gray-700">Receive tips and updates</label>
-          <input 
-            type="checkbox" 
-            className="form-checkbox h-5 w-5 text-indigo-600"
-          />
-        </div>
-      </section>
+
       <section className="settings-section p-6 bg-white mb-4">
         <h2 className="text-xl font-semibold mb-4">Add New User</h2>
         <form >
@@ -57,7 +41,13 @@ const Settings = () => {
               type="email" 
               className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
               placeholder="Enter user email" 
-              value={inviteEmail} 
+              onChange={(e) => setInviteEmail(e.target.value)} 
+            />
+            <label className="block text-gray-700">Password</label>
+             <input 
+              type="password" 
+              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+              placeholder="Enter user email" 
               onChange={(e) => setInviteEmail(e.target.value)} 
             />
           </div>
@@ -65,7 +55,7 @@ const Settings = () => {
             type="submit" 
             className="bg-green-500 text-white px-4 py-2 rounded-md"
           >
-            Send Invite
+            Add User
           </button>
         </form>
       </section>

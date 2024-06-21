@@ -29,6 +29,11 @@ const Notifications = () => {
     const closeModal = () => {
         setIsModalOpen(false);
     };
+    const ProcessedFinishTime = (finishTime) => {
+        const date = new Date(finishTime);
+        return date.toLocaleString();
+    };
+    const finishTime = ProcessedFinishTime(notifications.finishTime);
 
     return (
         <div className="flex flex-col items-center w-full bg-gray-100 min-h-screen">
@@ -47,7 +52,7 @@ const Notifications = () => {
                             <p className="font-semibold">{notification.patientname}</p>
                             <p>{notification.medname}</p>
                         </div>
-                        <span className="ml-auto text-gray-500">Time</span>
+                        <span className="ml-auto text-gray-500"> {notification.finishTime}</span>
                     </div>
                 ))}
             </div>
@@ -64,7 +69,7 @@ const Notifications = () => {
                         <div id="modal-modal-description">
                             <p>Patient Name: {selectedNotification.patientname}</p>
                             <p>Fluid Name: {selectedNotification.medname}</p>
-                            <p>Time: Time</p>
+                            <p>Time: {selectedNotification.finishTime}</p>
                             <p>Patient Age: {selectedNotification.age}</p>
                             <p>Doses Taken: {selectedNotification.dosesTaken}</p>
                             <p>Ward Number: {selectedNotification.wardnumber}</p>

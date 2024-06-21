@@ -135,6 +135,35 @@ function addPatient(patient) {
   );
 }
 
+function checkPatientTimes() {
+  const currentTime = new Date().toISOString().slice(0, 16); // Get current time in "YYYY-MM-DDTHH:MM" format
+
+  const query = `
+    SELECT patientname, medname
+    FROM Finalpatients
+    WHERE finishTime = ? OR halfTime = ? OR ninetyPercentTime = ? OR customTime = ?
+  `;
+
+  db.all(query, [currentTime, currentTime, currentTime, currentTime], (err, rows) => {
+    if (err) {
+      console.error('Failed to query patient times:', err);
+      return;
+    }
+
+    rows.forEach(row => {
+      notifier.notify({
+        title: 'Medication Alert',
+        message: `Patient: ${row.patientname}, Medication: ${row.medname}`
+      });
+    });
+  });
+}
+
+// Schedule the checkPatientTimes function to run every minute
+function startNotificationScheduler() {
+  cron.schedule('* * * * *', checkPatientTimes); // Runs every minute
+}
+
 // Handle database queries from the renderer process
 ipcMain.handle('query-database', (event, query, params) => {
   return new Promise((resolve, reject) => {
