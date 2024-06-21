@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import InputSlider from 'react-input-slider';
 import NavBar from '../components/Navbar';
+import toast, { Toaster } from 'react-hot-toast';
 
 const Home = () => {
   const [age, setPatientAge] = useState('');
@@ -17,12 +18,12 @@ const Home = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     const patient = {
-      patientname:patientName,
+      patientname: patientName,
       age,
-      wardnumber:wardNumber,
-      bednumber:bedNumber,
-      medname:medName,
-      volumeoffluid:volumeOfFluid,
+      wardnumber: wardNumber,
+      bednumber: bedNumber,
+      medname: medName,
+      volumeoffluid: volumeOfFluid,
       dosesTaken,
       flowRate,
       fluidNumber,
@@ -31,8 +32,22 @@ const Home = () => {
     try {
       const result = await window.api.addPatient(patient);
       console.log(result);
+      toast.success('Patient added successfully!');
+      
+      // Reset all form fields
+      setPatientName('');
+      setPatientAge('');
+      setWardNumber('');
+      setBedNumber('');
+      setMedName('');
+      setVolumeOfFluid('');
+      setDosesTaken('');
+      setFlowRate('');
+      setFluidNumber('');
+      setCustomAlarmPercentage(50);
     } catch (error) {
       console.error('Failed to add patient:', error);
+      toast.error('Failed to add patient!');
     }
   };
 
@@ -152,6 +167,7 @@ const Home = () => {
           Add Another Patient
         </button>
       </form>
+      <Toaster />
     </div>
   );
 };
