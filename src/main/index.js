@@ -47,10 +47,9 @@ db = new sqlite3.Database('./database.sqlite', (err) => {
 });
 
 function createTable() {
-  db.run(`CREATE TABLE IF NOT EXISTS users (
+  db.run(`CREATE TABLE IF NOT EXISTS theusers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    email TEXT,
+    username TEXT,
     password TEXT
   )`, (err) => {
     if (err) {

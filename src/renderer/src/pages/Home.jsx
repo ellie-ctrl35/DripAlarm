@@ -13,7 +13,11 @@ const Home = () => {
   const [flowRate, setFlowRate] = useState('');
   const [fluidNumber, setFluidNumber] = useState('');
   const [patientName, setPatientName] = useState('');
-  const [customAlarmPercentage, setCustomAlarmPercentage] = useState(50); // Default value is 50
+  const [customAlarmPercentage, setCustomAlarmPercentage] = useState(50); 
+  const [dropFactor, setDropFactor] = useState(10);
+  const time = volumeOfFluid * dropFactor / flowRate;
+
+  const now = new Date().getTime();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -49,6 +53,7 @@ const Home = () => {
       console.error('Failed to add patient:', error);
       toast.error('Failed to add patient!');
     }
+    console.log(time)
   };
 
   return (
