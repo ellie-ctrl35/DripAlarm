@@ -15,12 +15,23 @@ const Home = () => {
   const [patientName, setPatientName] = useState('');
   const [customAlarmPercentage, setCustomAlarmPercentage] = useState(50); 
   const [dropFactor, setDropFactor] = useState(10);
-  const time = volumeOfFluid * dropFactor / flowRate;
-
-  const now = new Date().getTime();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    const timeInSeconds = (volumeOfFluid * dropFactor) / flowRate;
+    const currentTime = new Date().getTime();
+    const finishTime = new Date(currentTime + timeInSeconds * 1000);
+
+    const halfTime = new Date(currentTime + (timeInSeconds * 0.5) * 1000);
+    const ninetyPercentTime = new Date(currentTime + (timeInSeconds * 0.9) * 1000);
+    const customTime = new Date(currentTime + (timeInSeconds * (customAlarmPercentage / 100)) * 1000);
+
+    console.log(`Finish Time: ${finishTime}`);
+    console.log(`50% Time: ${halfTime}`);
+    console.log(`90% Time: ${ninetyPercentTime}`);
+    console.log(`Custom (${customAlarmPercentage}%) Time: ${customTime}`);
+
     const patient = {
       patientname: patientName,
       age,
@@ -32,7 +43,12 @@ const Home = () => {
       flowRate,
       fluidNumber,
       customAlarmPercentage,
+      finishTime: finishTime.toISOString(),
+      halfTime: halfTime.toISOString(),
+      ninetyPercentTime: ninetyPercentTime.toISOString(),
+      customTime: customTime.toISOString(),
     };
+
     try {
       const result = await window.api.addPatient(patient);
       console.log(result);
@@ -53,7 +69,6 @@ const Home = () => {
       console.error('Failed to add patient:', error);
       toast.error('Failed to add patient!');
     }
-    console.log(time)
   };
 
   return (
