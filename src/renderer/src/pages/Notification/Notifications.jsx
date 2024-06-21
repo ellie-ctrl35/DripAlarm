@@ -12,7 +12,7 @@ const Notifications = () => {
         const fetchNotifications = async () => {
             try {
                 const patients = await window.api.queryDatabase('SELECT * FROM Finalpatients');
-                setNotifications(patients);
+                setNotifications(patients.reverse()); // Reverse the notifications array
             } catch (error) {
                 console.error('Failed to fetch notifications:', error);
             }
@@ -29,11 +29,11 @@ const Notifications = () => {
     const closeModal = () => {
         setIsModalOpen(false);
     };
-    const ProcessedFinishTime = (finishTime) => {
+
+    const processFinishTime = (finishTime) => {
         const date = new Date(finishTime);
         return date.toLocaleString();
     };
-    const finishTime = ProcessedFinishTime(notifications.finishTime);
 
     return (
         <div className="flex flex-col items-center w-full bg-gray-100 min-h-screen">
@@ -52,7 +52,7 @@ const Notifications = () => {
                             <p className="font-semibold">{notification.patientname}</p>
                             <p>{notification.medname}</p>
                         </div>
-                        <span className="ml-auto text-gray-500"> {notification.finishTime}</span>
+                        <span className="ml-auto text-gray-500">{processFinishTime(notification.finishTime)}</span>
                     </div>
                 ))}
             </div>
@@ -66,10 +66,10 @@ const Notifications = () => {
                 <Box className="bg-white p-6 rounded shadow-lg mt-48 max-w-lg mx-auto">
                     <span className="text-xl font-semibold mb-4" id="modal-modal-title">Notification Details</span>
                     {selectedNotification && (
-                        <div id="modal-modal-description">
+                        <div className='p-6 space-y-6' id="modal-modal-description">
                             <p>Patient Name: {selectedNotification.patientname}</p>
                             <p>Fluid Name: {selectedNotification.medname}</p>
-                            <p>Time: {selectedNotification.finishTime}</p>
+                            <p>Finish Time: {processFinishTime(selectedNotification.finishTime)}</p>
                             <p>Patient Age: {selectedNotification.age}</p>
                             <p>Doses Taken: {selectedNotification.dosesTaken}</p>
                             <p>Ward Number: {selectedNotification.wardnumber}</p>

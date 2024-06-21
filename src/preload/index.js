@@ -4,7 +4,8 @@ import { electronAPI } from '@electron-toolkit/preload';
 // Custom APIs for renderer
 const api = {
   queryDatabase: (query, params) => ipcRenderer.invoke('query-database', query, params),
-  addPatient: (patient) => ipcRenderer.invoke('add-patient', patient)
+  addPatient: (patient) => ipcRenderer.invoke('add-patient', patient),
+  addUser: (username, password) => ipcRenderer.invoke('add-user', username, password),  
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

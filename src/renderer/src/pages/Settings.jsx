@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import NavBar from '../components/Navbar';
+import {toast, Toaster} from 'react-hot-toast';
 
 const Settings = () => {
-  const [email, setEmail] = useState('joseph@hospital.com'); // Initialize with default or fetched value
-  const [darkMode, setDarkMode] = useState(false);
-  const [receiveUpdates, setReceiveUpdates] = useState(false);
-  const [notifyAppointments, setNotifyAppointments] = useState(false);
-  const [notifyMessages, setNotifyMessages] = useState(false);
-  const [notifyPatients, setNotifyPatients] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [username, setUsername] = useState(''); 
+  const [password, setPassword] = useState('');
+  const handleSubmit = () =>{
+    try {
+      window.api.addUser(username, password);
+      toast.success('User added successfully!');
+    } catch (error) {
+      toast.error('Failed to add user');
+    }
 
+  }
   return (
     <div className='bg-gray-100 min-h-screen'>
       <NavBar />
@@ -22,7 +26,7 @@ const Settings = () => {
         <div className="settings-info mb-4">
           <label className="block text-gray-700">Email: </label>
           <div className="flex justify-between items-center">
-            <div>{email}</div>
+            <div></div>
             <button className="bg-blue-500 text-white px-4 py-2 rounded-md">Change</button>
           </div>
         </div>
@@ -34,21 +38,23 @@ const Settings = () => {
 
       <section className="settings-section p-6 bg-white mb-4">
         <h2 className="text-xl font-semibold mb-4">Add New User</h2>
-        <form >
+        <form onSubmit={handleSubmit} >
           <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
+            <label className="block text-gray-700">username</label>
             <input 
-              type="email" 
+              type="email"
+              value={username} 
               className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
               placeholder="Enter user email" 
-              onChange={(e) => setInviteEmail(e.target.value)} 
+              onChange={(e) => setUsername(e.target.value)} 
             />
             <label className="block text-gray-700">Password</label>
              <input 
-              type="password" 
+              type="password"
+              value={password} 
               className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
               placeholder="Enter user email" 
-              onChange={(e) => setInviteEmail(e.target.value)} 
+              onChange={(e) => setPassword(e.target.value)} 
             />
           </div>
           <button 

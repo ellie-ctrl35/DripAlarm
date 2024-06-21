@@ -135,6 +135,20 @@ function addPatient(patient) {
   );
 }
 
+function addNewUser(username, password) {
+  db.run(
+    `INSERT INTO theusers (username, password) VALUES (?, ?)`,
+    [username, password],
+    function (err) {
+      if (err) {
+        console.error('Failed to add user:', err);
+      } else {
+        console.log('User added with ID:', this.lastID);
+      }
+    }
+  );
+}
+
 function checkPatientTimes() {
   const currentTime = new Date().toISOString().slice(0, 16); // Get current time in "YYYY-MM-DDTHH:MM" format
 
@@ -182,6 +196,13 @@ ipcMain.handle('add-patient', (event, patient) => {
   return new Promise((resolve, reject) => {
     addPatient(patient);
     resolve('Patient added');
+  });
+});
+
+ipcMain.handle('add-user', (event, username, password) => {
+  return new Promise((resolve, reject) => {
+    addNewUser(username, password);
+    resolve('User added');
   });
 });
 
