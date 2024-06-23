@@ -55,7 +55,7 @@ const Notifications = () => {
                 placeholder="Search by patient name"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="border border-gray-300 rounded px-3 py-1 mb-4 w-80"
+                className="border border-gray-300 rounded px-3 py-2 mb-4 w-96"
             />
             <div className="w-2/3">
                 {filteredNotifications.map((notification) => (

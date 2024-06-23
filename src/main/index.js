@@ -4,16 +4,13 @@ const { electronApp, optimizer, is } = require('@electron-toolkit/utils');
 const sqlite3 = require('sqlite3').verbose();
 const notifier = require('node-notifier');
 const schedule = require('node-schedule');
-const http = require('http');  // Add this line
-const socketIo = require('socket.io');  // Add this line
-
-// const icon = require('../../resources/icon.png?asset');
+const http = require('http');
+const socketIo = require('socket.io');
 
 let db;
 
-// Create an HTTP server
-const server = http.createServer();  // Add this line
-const io = socketIo(server);  // Add this line
+const server = http.createServer();
+const io = socketIo(server);
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -44,7 +41,6 @@ function createWindow() {
   }
 }
 
-// Initialize the database
 db = new sqlite3.Database('./database.sqlite', (err) => {
   if (err) {
     console.error('Failed to connect to database:', err);
@@ -95,7 +91,6 @@ function createPatientTable() {
   });
 }
 
-// Function to add a new patient
 function addPatient(patient) {
   const {
     patientname,
@@ -159,49 +154,59 @@ function addNewUser(username, password) {
 }
 
 function checkPatientTimes() {
-  const roundToMinute = (date) => {
-    date.setSeconds(0, 0); // Set seconds and milliseconds to 0
-    return date.toISOString();
-  };
-
-  const currentTime = new Date();
-  currentTime.setSeconds(0, 0); // Set seconds and milliseconds to 0
-  const formattedCurrentTime = currentTime.toISOString();
+  const currentTime = new Date().toISOString();
 
   const query = `
-    SELECT patientname, medname
+    SELECT patientname, medname, finishTime, halfTime, ninetyPercentTime, customTime
     FROM Finalpatients
-    WHERE finishTime >= ? 
-    OR halfTime >= ? 
-    OR ninetyPercentTime >= ? 
-    OR customTime >= ?
+    WHERE finishTime <= ? 
+    OR halfTime <= ? 
+    OR ninetyPercentTime <= ? 
+    OR customTime <= ?
   `;
 
-  db.all(query, [formattedCurrentTime, formattedCurrentTime, formattedCurrentTime, formattedCurrentTime], (err, rows) => {
+  db.all(query, [currentTime, currentTime, currentTime, currentTime], (err, rows) => {
     if (err) {
       console.error('Failed to check patient times:', err);
       return;
     }
 
+    console.log(`Current Time: ${currentTime}`);
+    console.log(`Rows found: ${rows.length}`);
     if (rows.length > 0) {
       const patientsWithAlarms = rows.map((row) => ({
         patientname: row.patientname,
         medname: row.medname,
+        finishTime: row.finishTime,
+        halfTime: row.halfTime,
+        ninetyPercentTime: row.ninetyPercentTime,
+        customTime: row.customTime
       }));
 
+      console.log(`Patients with alarms: ${JSON.stringify(patientsWithAlarms)}`);
+
       io.emit('patientTimes', patientsWithAlarms);
+
+      // Also show notifications for each patient
+      patientsWithAlarms.forEach((patient) => {
+        notifier.notify({
+          title: 'Patient Medication Alert',
+          message: `Medication time for ${patient.patientname} with ${patient.medname}.`,
+          sound: true, // Only Notification Center or Windows Toasters
+          wait: true // Wait with callback until user action is taken against notification
+        });
+      });
     } else {
       console.log('No patients found with matching times.');
     }
   });
 }
 
-// Schedule the checkPatientTimes function to run every minute using node-schedule
+
 function startNotificationScheduler() {
-  schedule.scheduleJob('* * * * *', checkPatientTimes); // Runs every minute
+  schedule.scheduleJob('* * * * ', checkPatientTimes); // Runs every minute
 }
 
-// Function to authenticate a user
 function authenticateUser(username, password) {
   return new Promise((resolve, reject) => {
     const query = `SELECT * FROM theusers WHERE username = ? AND password = ?`;
@@ -217,7 +222,6 @@ function authenticateUser(username, password) {
   });
 }
 
-// Handle login from the renderer process
 ipcMain.handle('login', async (event, username, password) => {
   try {
     const user = await authenticateUser(username, password);
@@ -227,7 +231,6 @@ ipcMain.handle('login', async (event, username, password) => {
   }
 });
 
-// Handle database queries from the renderer process
 ipcMain.handle('query-database', (event, query, params) => {
   return new Promise((resolve, reject) => {
     db.all(query, params, (err, rows) => {
@@ -240,7 +243,6 @@ ipcMain.handle('query-database', (event, query, params) => {
   });
 });
 
-// Handle adding a new patient from the renderer process
 ipcMain.handle('add-patient', (event, patient) => {
   return new Promise((resolve, reject) => {
     addPatient(patient);
@@ -286,7 +288,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Start the server
-server.listen(3000, () => {  // Add this line
-  console.log('Server is running on port 3000');  // Add this line
-});  // Add this line
+server.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
