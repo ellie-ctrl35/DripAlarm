@@ -7,6 +7,8 @@ const Notifications = () => {
     const [notifications, setNotifications] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredNotifications, setFilteredNotifications] = useState([]);
 
     useEffect(() => {
         const fetchNotifications = async () => {
@@ -20,6 +22,14 @@ const Notifications = () => {
 
         fetchNotifications();
     }, []);
+
+    useEffect(() => {
+        setFilteredNotifications(
+            notifications.filter(notification =>
+                notification.patientname.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+        );
+    }, [notifications, searchQuery]);
 
     const handleClick = (notification) => {
         setSelectedNotification(notification);
@@ -39,12 +49,19 @@ const Notifications = () => {
         <div className="flex flex-col items-center w-full bg-gray-100 min-h-screen">
             <NavBar />
             <h2 className="text-xl font-semibold my-6">Notifications</h2>
-            <p className="mb-4">You have {notifications.length} new notifications</p>
+            <p className="mb-4">You have {filteredNotifications.length} new notifications</p>
+            <input
+                type="text"
+                placeholder="Search by patient name"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="border border-gray-300 rounded px-3 py-1 mb-4 w-80"
+            />
             <div className="w-2/3">
-                {notifications.map((notification) => (
-                    <div 
-                        key={notification.id} 
-                        className="flex items-center p-4 mb-4 bg-white rounded shadow cursor-pointer" 
+                {filteredNotifications.map((notification) => (
+                    <div
+                        key={notification.id}
+                        className="flex items-center p-4 mb-4 bg-white rounded shadow cursor-pointer"
                         onClick={() => handleClick(notification)}
                     >
                         <Avatar name={notification.patientname} size="40" round={true} />

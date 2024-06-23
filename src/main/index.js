@@ -4,10 +4,16 @@ const { electronApp, optimizer, is } = require('@electron-toolkit/utils');
 const sqlite3 = require('sqlite3').verbose();
 const notifier = require('node-notifier');
 const schedule = require('node-schedule');
+const http = require('http');  // Add this line
+const socketIo = require('socket.io');  // Add this line
 
 // const icon = require('../../resources/icon.png?asset');
 
 let db;
+
+// Create an HTTP server
+const server = http.createServer();  // Add this line
+const io = socketIo(server);  // Add this line
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -164,7 +170,7 @@ function checkPatientTimes() {
 
   const query = `
     SELECT patientname, medname
-    FROM patients
+    FROM Finalpatients
     WHERE finishTime >= ? 
     OR halfTime >= ? 
     OR ninetyPercentTime >= ? 
@@ -189,7 +195,6 @@ function checkPatientTimes() {
     }
   });
 }
-
 
 // Schedule the checkPatientTimes function to run every minute using node-schedule
 function startNotificationScheduler() {
@@ -280,3 +285,8 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+// Start the server
+server.listen(3000, () => {  // Add this line
+  console.log('Server is running on port 3000');  // Add this line
+});  // Add this line
