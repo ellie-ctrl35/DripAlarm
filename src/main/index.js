@@ -154,15 +154,15 @@ function addNewUser(username, password) {
 }
 
 function checkPatientTimes() {
-  const currentTime = new Date().toISOString();
+  const currentTime = new Date().getTime();
 
   const query = `
     SELECT patientname, medname, finishTime, halfTime, ninetyPercentTime, customTime
     FROM Finalpatients
-    WHERE finishTime <= ? 
-    OR halfTime <= ? 
-    OR ninetyPercentTime <= ? 
-    OR customTime <= ?
+    WHERE finishTime = ? 
+    OR halfTime = ? 
+    OR ninetyPercentTime = ? 
+    OR customTime = ?
   `;
 
   db.all(query, [currentTime, currentTime, currentTime, currentTime], (err, rows) => {
@@ -204,7 +204,7 @@ function checkPatientTimes() {
 
 
 function startNotificationScheduler() {
-  schedule.scheduleJob('* * * * ', checkPatientTimes); // Runs every minute
+  schedule.scheduleJob('* * * * * *', checkPatientTimes); 
 }
 
 function authenticateUser(username, password) {

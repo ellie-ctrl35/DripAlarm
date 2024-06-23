@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InputSlider from 'react-input-slider';
 import NavBar from '../components/Navbar';
 import toast, { Toaster } from 'react-hot-toast';
@@ -16,6 +16,74 @@ const Home = () => {
   const [customAlarmPercentage, setCustomAlarmPercentage] = useState(50); 
   const [dropFactor, setDropFactor] = useState(10);
 
+  useEffect(() => {
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  const showNotification = (title, options) => {
+    if (Notification.permission === 'granted') {
+      new Notification(title, options);
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          new Notification(title, options);
+        }
+      });
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      console.log(now)
+      const entries = JSON.parse(localStorage.getItem('patientEntries')) || [];
+      entries.forEach((entry, index) => {
+        const fiftyPercentTime = entry.finishTime - (entry.finishTime - entry.startTime) * 0.5;
+        const ninetyPercentTime = entry.finishTime - (entry.finishTime - entry.startTime) * 0.1;
+        const customAlarmTime = entry.finishTime - (entry.finishTime - entry.startTime) * (entry.customAlarmPercentage / 100);
+
+        if (now >= fiftyPercentTime && !entry.fiftyPercentToastShown) {
+          showNotification(`50% time is up for ${entry.patientName}`, {
+            body: `Medication: ${entry.medName}`,
+            requireInteraction: true,
+          });
+
+          entries[index] = { ...entry, fiftyPercentToastShown: true };
+          localStorage.setItem('patientEntries', JSON.stringify(entries));
+        } else if (now >= ninetyPercentTime && !entry.ninetyPercentToastShown) {
+          showNotification(`90% time is up for ${entry.patientName}`, {
+            body: `Medication: ${entry.medName}`,
+            requireInteraction: true,
+          });
+
+          entries[index] = { ...entry, ninetyPercentToastShown: true };
+          localStorage.setItem('patientEntries', JSON.stringify(entries));
+        } else if (now >= customAlarmTime && !entry.customAlarmToastShown) {
+          showNotification(`Time is ${entry.customAlarmPercentage}% up for ${entry.patientName}`, {
+            body: `Medication: ${entry.medName}`,
+            requireInteraction: true,
+          });
+
+          entries[index] = { ...entry, customAlarmToastShown: true };
+          localStorage.setItem('patientEntries', JSON.stringify(entries));
+        } else if (now >= entry.finishTime && !entry.finishToastShown) {
+          showNotification(`Time's up for ${entry.patientName}`, {
+            body: `Medication: ${entry.medName}`,
+            requireInteraction: true,
+          });
+
+          const newEntries = entries.filter((e) => e.finishTime !== entry.finishTime);
+          newEntries[index] = { ...entry, finishToastShown: true };
+          localStorage.setItem('patientEntries', JSON.stringify(newEntries));
+        }
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const roundToMinute = (date) => {
     date.setSeconds(0, 0); // Set seconds and milliseconds to 0
     return date;
@@ -31,33 +99,33 @@ const Home = () => {
     const ninetyPercentTime = roundToMinute(new Date(currentTime + (timeInSeconds * 0.9) * 1000));
     const customTime = roundToMinute(new Date(currentTime + (timeInSeconds * (customAlarmPercentage / 100)) * 1000));
 
-    console.log(`Finish Time: ${finishTime}`);
-    console.log(`50% Time: ${halfTime}`);
-    console.log(`90% Time: ${ninetyPercentTime}`);
-    console.log(`Custom (${customAlarmPercentage}%) Time: ${customTime}`);
-
     const patient = {
-      patientname: patientName,
+      patientName,
       age,
-      wardnumber: wardNumber,
-      bednumber: bedNumber,
-      medname: medName,
-      volumeoffluid: volumeOfFluid,
+      wardNumber,
+      bedNumber,
+      medName,
+      volumeOfFluid,
       dosesTaken,
       flowRate,
       fluidNumber,
       customAlarmPercentage,
-      finishTime: finishTime.toISOString(),
-      halfTime: halfTime.toISOString(),
-      ninetyPercentTime: ninetyPercentTime.toISOString(),
-      customTime: customTime.toISOString(),
+      startTime: currentTime,
+      finishTime: finishTime.getTime(),
+      halfTime: halfTime.getTime(),
+      ninetyPercentTime: ninetyPercentTime.getTime(),
+      customTime: customTime.getTime(),
     };
 
     try {
       const result = await window.api.addPatient(patient);
       console.log(result);
       toast.success('Patient added successfully!');
-      
+
+      const existingEntries = JSON.parse(localStorage.getItem('patientEntries')) || [];
+      existingEntries.push(patient);
+      localStorage.setItem('patientEntries', JSON.stringify(existingEntries));
+
       // Reset all form fields
       setPatientName('');
       setPatientAge('');
@@ -149,7 +217,7 @@ const Home = () => {
             className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:border-indigo-500"
           />
         </div>
-        <div className="grid grid-cols-2 gap-4 mt-6">
+        <div className="grid grid-cols-2 gap-4 mt-4 items-center">
           <input
             name="fluidNumber"
             placeholder="Fluid Number"
@@ -157,48 +225,33 @@ const Home = () => {
             onChange={(e) => setFluidNumber(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:border-indigo-500"
           />
-          {/* Seekbar/slider for custom alarm percentage */}
-          <input
-            name="DropFactor"
-            placeholder="Drop Factor (drops/mL)"
-            type='number'
-            value={dropFactor}
-            onChange={(e) => setDropFactor(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:border-indigo-500"
+          <InputSlider
+            axis="x"
+            x={customAlarmPercentage}
+            onChange={({ x }) => setCustomAlarmPercentage(x)}
+            styles={{
+              track: {
+                width: '100%',
+                height: 4,
+                backgroundColor: '#ccc',
+              },
+              active: {
+                backgroundColor: '#007bff',
+              },
+              thumb: {
+                width: 20,
+                height: 20,
+                backgroundColor: '#007bff',
+              },
+            }}
           />
+          <span>{customAlarmPercentage}%</span>
         </div>
-        <div className="grid grid-cols-2 gap-4 mt-6">
-          <div className="flex items-center space-x-2">
-            <label className="text-sm">Custom Alarm Percentage:</label>
-            <InputSlider
-              axis="x"
-              x={customAlarmPercentage}
-              onChange={({ x }) => setCustomAlarmPercentage(x)}
-              xmin={1}
-              xmax={99}
-              styles={{
-                track: {
-                  backgroundColor: '#d6d6d6',
-                  height: '8px',
-                },
-                active: {
-                  backgroundColor: '#2563EB',
-                  height: '8px',
-                },
-                thumb: {
-                  backgroundColor: '#2563EB',
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 0 1px #2563EB, 0 0 0 2px rgba(0, 0, 0, 0.1)',
-                },
-              }}
-            />
-            <span>{customAlarmPercentage}%</span>
-          </div>
-        </div>
-        <button className="bg-blue-500 hover:bg-blue-700 text-white justify-center items-center flex font-bold py-2 px-4 rounded mt-20 ml-96" type="submit">
-          Add Another Patient
+        <button
+          type="submit"
+          className="mt-4 self-center bg-indigo-500 text-white px-4 py-2 rounded-sm hover:bg-indigo-600"
+        >
+          Add Patient
         </button>
       </form>
       <Toaster />

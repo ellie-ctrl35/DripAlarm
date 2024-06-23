@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal, Box } from '@mui/material';
-import Avatar from 'react-avatar';
 import NavBar from '../../components/Navbar';
+import Avatar from 'react-avatar';
 
 const Notifications = () => {
     const [notifications, setNotifications] = useState([]);
@@ -26,7 +26,7 @@ const Notifications = () => {
     useEffect(() => {
         setFilteredNotifications(
             notifications.filter(notification =>
-                notification.patientname.toLowerCase().includes(searchQuery.toLowerCase())
+                notification.patientname?.toLowerCase().includes(searchQuery.toLowerCase())
             )
         );
     }, [notifications, searchQuery]);
