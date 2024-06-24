@@ -14,6 +14,7 @@ const Login = () => {
       const response = await window.api.login(username, password);
       if (response.success) {
         toast.success('Login successful!');
+        localStorage.setItem('username', username); 
         navigate('/home'); // Use '/home' to navigate to the home page
       } else {
         toast.error(response.message || 'Login failed');

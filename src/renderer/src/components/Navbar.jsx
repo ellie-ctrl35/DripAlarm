@@ -5,8 +5,10 @@ import logo from '../assets/logo.png'; // Replace with your logo
 import { Button } from '@mui/material';
 
 const NavBar = () => {
-  const userName = "User Name"; // Replace with dynamic user name
+  const username = localStorage.getItem('username'); // Retrieve the username from localStorage
+  console.log('Username:', username);
   const navigate = useNavigate();
+  
   return (
     <nav className="bg-gray-100 p-2 w-full border-b border-gray-400 sticky top-0 z-50">
       <div className="flex items-center justify-between">
@@ -15,19 +17,22 @@ const NavBar = () => {
           <span className="text-black font-semibold text-lg">JOSEPH IV DRIP</span>
         </div>
         <div className="flex items-center space-x-6">
-          <NavLink to="/home" activeClassName="text-indigo-400" className="text-black hover:text-indigo-400">
+          <NavLink to="/home" className={({ isActive }) => (isActive ? 'text-indigo-400' : 'text-black hover:text-indigo-400')}>
             Patient Entry
           </NavLink>
-          <NavLink to="/notification" activeClassName="text-indigo-400" className="text-black hover:text-indigo-400">
+          <NavLink to="/notification" className={({ isActive }) => (isActive ? 'text-indigo-400' : 'text-black hover:text-indigo-400')}>
             Notification
           </NavLink>
-          <NavLink to="/settings" activeClassName="text-indigo-400" className="text-black hover:text-indigo-400">
+          <NavLink to="/settings" className={({ isActive }) => (isActive ? 'text-indigo-400' : 'text-black hover:text-indigo-400')}>
             Settings
           </NavLink>
-          <Button onClick={()=>navigate('/')} variant="contained" color="primary">
+          <Button onClick={() => {
+            localStorage.removeItem('username'); // Remove username on logout
+            navigate('/');
+          }} variant="contained" color="primary">
             Logout
           </Button>
-          <Avatar name={userName} size="40" round={true} />
+          <Avatar name={username || 'User'} size="40" round={true} />
         </div>
       </div>
     </nav>

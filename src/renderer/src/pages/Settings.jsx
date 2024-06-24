@@ -5,6 +5,8 @@ import {toast, Toaster} from 'react-hot-toast';
 const Settings = () => {
   const [username, setUsername] = useState(''); 
   const [password, setPassword] = useState('');
+  const loggedinUser = localStorage.getItem('username');
+  console.log('Logged in user:', loggedinUser)
   
   const handleSubmit = (event) => {
     event.preventDefault(); // Prevent form from refreshing the page
@@ -27,7 +29,7 @@ const Settings = () => {
       <section className="settings-section p-6 bg-white mb-4">
         <h2 className="text-xl font-semibold mb-4">Account Information</h2>
         <div className="settings-info mb-4">
-          <label className="block text-gray-700">Email: </label>
+          <label className="block text-gray-700">Email: {loggedinUser} </label>
           <div className="flex justify-between items-center">
             <div></div>
             <button className="bg-blue-500 text-white px-4 py-2 rounded-md">Change</button>
