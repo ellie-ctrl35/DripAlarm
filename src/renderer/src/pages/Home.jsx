@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import InputSlider from 'react-input-slider';
 import NavBar from '../components/Navbar';
 import toast, { Toaster } from 'react-hot-toast';
+import alarmSound from '../assets/Alarm.mp3'
 
 const Home = () => {
   const [age, setPatientAge] = useState('');
@@ -23,12 +24,22 @@ const Home = () => {
   }, []);
 
   const showNotification = (title, options) => {
+    const audio = new Audio(alarmSound);
+    const playAlarm = () => {
+      audio.play();
+      setTimeout(() => {
+        audio.pause();
+        audio.currentTime = 0;
+      }, 10000); // Play for 10 seconds
+    };
     if (Notification.permission === 'granted') {
       new Notification(title, options);
+      playAlarm();
     } else if (Notification.permission === 'default') {
       Notification.requestPermission().then((permission) => {
         if (permission === 'granted') {
           new Notification(title, options);
+          playAlarm();
         }
       });
     }
@@ -94,28 +105,41 @@ const Home = () => {
 
     const timeInSeconds = (volumeOfFluid * dropFactor) / flowRate;
     const currentTime = new Date().getTime();
-    const finishTime = roundToMinute(new Date(currentTime + timeInSeconds * 1000));
+    const finishTime = new Date(currentTime + timeInSeconds * 1000);
+    const formattedTime = finishTime.toISOString();
     const halfTime = roundToMinute(new Date(currentTime + (timeInSeconds * 0.5) * 1000));
     const ninetyPercentTime = roundToMinute(new Date(currentTime + (timeInSeconds * 0.9) * 1000));
     const customTime = roundToMinute(new Date(currentTime + (timeInSeconds * (customAlarmPercentage / 100)) * 1000));
 
     const patient = {
-      patientName,
+      patientname:patientName,
       age,
-      wardNumber,
-      bedNumber,
-      medName,
-      volumeOfFluid,
+      wardnumber:wardNumber,
+      bednumber:bedNumber,
+      medname:medName,
+      volumeoffluid:volumeOfFluid,
       dosesTaken,
       flowRate,
       fluidNumber,
       customAlarmPercentage,
       startTime: currentTime,
-      finishTime: finishTime.getTime(),
+      finishTime:formattedTime,
       halfTime: halfTime.getTime(),
       ninetyPercentTime: ninetyPercentTime.getTime(),
       customTime: customTime.getTime(),
     };
+
+    const patientLocal ={
+      patientName,
+      age,
+      medName,
+      customAlarmPercentage,
+      finishTime:finishTime.getTime(),
+      halfTime:halfTime.getTime(),
+      ninetyPercentTime:ninetyPercentTime.getTime(),
+      customTime:customTime.getTime(),
+      startTime:currentTime,
+    }
 
     try {
       const result = await window.api.addPatient(patient);
@@ -123,7 +147,7 @@ const Home = () => {
       toast.success('Patient added successfully!');
 
       const existingEntries = JSON.parse(localStorage.getItem('patientEntries')) || [];
-      existingEntries.push(patient);
+      existingEntries.push(patientLocal);
       localStorage.setItem('patientEntries', JSON.stringify(existingEntries));
 
       // Reset all form fields
@@ -225,6 +249,15 @@ const Home = () => {
             onChange={(e) => setFluidNumber(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:border-indigo-500"
           />
+          <input type="number" placeholder='Enter Drop Factor'
+          value={dropFactor}
+           onChange={(e)=>setDropFactor(e.target.value)}
+           className="px-3 py-2 border border-gray-300 rounded-sm focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div className='flex flex-row mt-6 w-full h-16  items-center justify-between'>
+          <h2 className='w-52'>Custom Alarm Percentage</h2>
+          <div className='flex flex-row space-x-1 w-2/4 items-center'>
+          <span>{customAlarmPercentage}%</span>
           <InputSlider
             axis="x"
             x={customAlarmPercentage}
@@ -245,11 +278,11 @@ const Home = () => {
               },
             }}
           />
-          <span>{customAlarmPercentage}%</span>
+          </div>
         </div>
         <button
           type="submit"
-          className="mt-4 self-center bg-indigo-500 text-white px-4 py-2 rounded-sm hover:bg-indigo-600"
+          className="mt-4 self-center ml-96 bg-indigo-500 text-white px-8 py-2 rounded-sm hover:bg-indigo-600"
         >
           Add Patient
         </button>
